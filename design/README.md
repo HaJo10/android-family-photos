@@ -2,12 +2,14 @@
 
 The design files are in this folder as JPEG files.
 
-There are two activity screens:
+There are six activity screens:
 
-* Home Screen
-* Details Screen
-
-In addition, there is a settings dialog design.
+* Splash
+* Home
+* Details
+* Sign In
+* Sign Up
+* Forgot Password 
 
 ## Color Scheme
 
@@ -21,5 +23,4 @@ See [Current Scheme](https://material.io/color/#!/?view.left=0&view.right=0&prim
   * Light: #ffd149
   * Dark: #c67100
   * Text: #000000
-
 
