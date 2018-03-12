@@ -7,6 +7,7 @@ This is a companion Android app (with source code and all artifacts) for my blog
 3. [Requirements planning](https://medium.com/@FizzyInTheHall/building-a-production-android-app-3-9aa67d978607)
 4. [Startup Timing](https://medium.com/@FizzyInTheHall/building-a-production-android-app-4-435769b2b98)
 5. [Design](https://medium.com/@FizzyInTheHall/building-a-production-android-app-5-design-c6368191cd88)
+6. [Exception Handling](https://medium.com/@FizzyInTheHall/building-a-production-android-app-6-exception-handling-e5c008a8c97c)
 
 # Design Files
 
