@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.shellmonger.apps.familyphotos.R;
+import com.shellmonger.apps.familyphotos.lifecycle.ApplicationCrashHandler;
 import com.shellmonger.apps.familyphotos.lifecycle.ApplicationWrapper;
 
 /**
@@ -31,6 +32,9 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+
+        // Install the application crash handler
+        ApplicationCrashHandler.installHandler();
 
         // Record the start-up time
         long currentTime = System.currentTimeMillis();
