@@ -10,6 +10,8 @@ This is a companion Android app (with source code and all artifacts) for my blog
 6. [Exception Handling](https://medium.com/@FizzyInTheHall/building-a-production-android-app-6-exception-handling-e5c008a8c97c)
 7. [Data Models](https://medium.com/@FizzyInTheHall/building-a-production-android-app-7-data-models-6700b4168d2)
 8. [Data Models Redux](https://medium.com/@FizzyInTheHall/building-a-production-android-app-8-data-models-redux-e23359f2faee)
+9. [Repository Pattern](https://medium.com/@FizzyInTheHall/building-a-production-android-app-9-the-repository-pattern-fbae7dd398ce)
+
 
 # Design Files
 
