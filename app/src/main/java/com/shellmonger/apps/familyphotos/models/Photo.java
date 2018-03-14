@@ -8,14 +8,14 @@ public class Photo extends BaseModel {
     private String photoId;
     private String imageName;
     private String caption;
-    private Album album;
-    private List<Tag> tags;
+    private String albumId;
+    private List<String> tags;
     private boolean hidden;
     private long created;
 
     public Photo() {
         photoId = UUID.randomUUID().toString();
-        tags = new ArrayList<Tag>();
+        tags = new ArrayList<>();
     }
 
     public String getPhotoId() {
@@ -42,19 +42,19 @@ public class Photo extends BaseModel {
         this.caption = caption;
     }
 
-    public Album getAlbum() {
-        return album;
+    public String getAlbumId() {
+        return albumId;
     }
 
-    public void setAlbum(Album album) {
-        this.album = album;
+    public void setAlbumId(String albumId) {
+        this.albumId = albumId;
     }
 
-    public List<Tag> getTags() {
+    public List<String> getTags() {
         return tags;
     }
 
-    public void setTags(List<Tag> tags) {
+    public void setTags(List<String> tags) {
         this.tags = tags;
     }
 
