@@ -8,6 +8,8 @@ This is a companion Android app (with source code and all artifacts) for my blog
 4. [Startup Timing](https://medium.com/@FizzyInTheHall/building-a-production-android-app-4-435769b2b98)
 5. [Design](https://medium.com/@FizzyInTheHall/building-a-production-android-app-5-design-c6368191cd88)
 6. [Exception Handling](https://medium.com/@FizzyInTheHall/building-a-production-android-app-6-exception-handling-e5c008a8c97c)
+7. [Data Models](https://medium.com/@FizzyInTheHall/building-a-production-android-app-7-data-models-6700b4168d2)
+8. [Data Models Redux](https://medium.com/@FizzyInTheHall/building-a-production-android-app-8-data-models-redux-e23359f2faee)
 
 # Design Files
 
