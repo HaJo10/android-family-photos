@@ -3,19 +3,33 @@ package com.shellmonger.apps.familyphotos.repositories;
 import com.shellmonger.apps.familyphotos.models.Album;
 import com.shellmonger.apps.familyphotos.models.Photo;
 
+import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class RepositoryFactoryTest {
+    @Before
+    public void runBeforeTestMethod() {
+        RepositoryFactory.cleanup();
+    }
+
+    @Test (expected=RepositoryException.class)
+    public void photosRepositoryNeedsInitialization() throws RepositoryException {
+        IRepository<Photo> p = RepositoryFactory.getPhotosRepository();
+        fail("Photos Repository is unexpectedly present");
+    }
+
     @Test
     public void photosRepositoryCanBeRetrieved() throws RepositoryException {
-        IRepository<Photo> photosRepository = RepositoryFactory.getPhotosRepository(null);
+        RepositoryFactory.initialize(null);
+        IRepository<Photo> photosRepository = RepositoryFactory.getPhotosRepository();
         assertNotNull(photosRepository);
     }
 
     @Test
     public void albumsRepositoryCanBeRetrieved() throws RepositoryException {
-        IRepository<Album> albumsRepository = RepositoryFactory.getAlbumsRepository(null);
+        RepositoryFactory.initialize(null);
+        IRepository<Album> albumsRepository = RepositoryFactory.getAlbumsRepository();
         assertNotNull(albumsRepository);
     }
 }

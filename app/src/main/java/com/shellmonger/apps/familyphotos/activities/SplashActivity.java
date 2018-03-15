@@ -8,6 +8,7 @@ import android.util.Log;
 import com.shellmonger.apps.familyphotos.R;
 import com.shellmonger.apps.familyphotos.lifecycle.ApplicationCrashHandler;
 import com.shellmonger.apps.familyphotos.lifecycle.ApplicationWrapper;
+import com.shellmonger.apps.familyphotos.repositories.RepositoryFactory;
 
 /**
  * Splash Screen - first screen within the app, responsible for creating references
@@ -35,6 +36,9 @@ public class SplashActivity extends AppCompatActivity {
 
         // Install the application crash handler
         ApplicationCrashHandler.installHandler();
+
+        // Initialize the repositories
+        RepositoryFactory.initialize(getApplicationContext());
 
         // Record the start-up time
         long currentTime = System.currentTimeMillis();

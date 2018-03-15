@@ -1,10 +1,12 @@
 package com.shellmonger.apps.familyphotos.models;
 
+import android.graphics.Bitmap;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Photo extends BaseModel {
-    private String imageName;
+    private Bitmap picture;
     private String caption;
     private String albumId;
     private List<String> tags;
@@ -16,12 +18,12 @@ public class Photo extends BaseModel {
         tags = new ArrayList<>();
     }
 
-    public String getImageName() {
-        return imageName;
+    public Bitmap getPicture() {
+        return picture;
     }
 
-    public void setImageName(String imageName) {
-        this.imageName = imageName;
+    public void setPicture(Bitmap picture) {
+        this.picture = picture;
     }
 
     public String getCaption() {
