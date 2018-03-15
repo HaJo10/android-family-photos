@@ -1,7 +1,10 @@
 package com.shellmonger.apps.familyphotos.activities;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.View;
 
 import com.shellmonger.apps.familyphotos.R;
 
@@ -10,6 +13,8 @@ import com.shellmonger.apps.familyphotos.R;
  * singleton setups have already been done, so we don't need to do it separately.
  */
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
+
     /**
      * Called when the activity is starting to initialize the activity.
      *
@@ -22,5 +27,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Configure the action bar
+        Toolbar toolbar = findViewById(R.id.main_toolbar);
+        setSupportActionBar(toolbar);
+    }
+
+    /**
+     * Event handler called when the camera icon is clicked
+     * @param v the view that initiated this call
+     */
+    public void handleOnCameraIconClicked(View v) {
+        Log.i(TAG, "handleOnCameraIconClicked");
     }
 }
