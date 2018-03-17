@@ -12,7 +12,7 @@ import java.util.List;
  *
  * @param <T> the type that the repository holds.
  */
-public class FakeRepository<T extends BaseModel> implements IRepository<T> {
+public class FakeRepository<T extends BaseModel> extends Repository<T> {
     private List<T> items = new ArrayList<>();
 
     public FakeRepository(Context context) {
@@ -27,14 +27,15 @@ public class FakeRepository<T extends BaseModel> implements IRepository<T> {
      */
     @Override
     public T saveItem(T record) throws RepositoryException {
-        /* Update the record so that the updated value is set */
         record.setUpdated(System.currentTimeMillis());
-
         int index = items.indexOf(record);
         if (index == -1) {
             items.add(record);
+            index = items.indexOf(record);
+            notifyObservers(new RepositoryChange(RepositoryOperation.ADD, record.getId(), index));
         } else {
             items.set(index, record);
+            notifyObservers(new RepositoryChange(RepositoryOperation.CHANGE, record.getId(), index));
         }
         return record;
     }
@@ -47,7 +48,11 @@ public class FakeRepository<T extends BaseModel> implements IRepository<T> {
      */
     @Override
     public void removeItem(T record) throws RepositoryException {
-        if (!items.remove(record)) {
+        int index = items.indexOf(record);
+        if (index != -1) {
+            items.remove(record);
+            notifyObservers(new RepositoryChange(RepositoryOperation.REMOVE, record.getId(), index));
+        } else {
             throw new ItemMissingException(String.format("Item %s does not exist", record.getId()));
         }
     }
@@ -67,6 +72,25 @@ public class FakeRepository<T extends BaseModel> implements IRepository<T> {
             }
         }
         throw new ItemMissingException(String.format("Item %s does not exist", id));
+    }
+
+    /**
+     * Retrieves an individual record based on the position in the list.
+     * The position is ordered by the created date.
+     * @param position the position of the item
+     * @return the retrieved record
+     * @throws RepositoryException if the data cannot be retrieved.
+     * @throws ItemMissingException if the data is not present.
+     */
+    @Override
+    public T getItem(int position) throws RepositoryException {
+        if (position < 0) {
+            throw new RepositoryException("Invalid position");
+        } else if (position > items.size()) {
+            throw new ItemMissingException(String.format("No data at position %d", position));
+        } else {
+            return items.get(position);
+        }
     }
 
     /**

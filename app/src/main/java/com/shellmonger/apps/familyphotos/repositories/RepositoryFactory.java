@@ -6,8 +6,8 @@ import com.shellmonger.apps.familyphotos.models.Album;
 import com.shellmonger.apps.familyphotos.models.Photo;
 
 public class RepositoryFactory {
-    private static IRepository<Photo> _photosRepository = null;
-    private static IRepository<Album> _albumsRepository = null;
+    private static Repository<Photo> _photosRepository = null;
+    private static Repository<Album> _albumsRepository = null;
 
     public static synchronized void initialize(Context context) {
         if (_photosRepository == null) {
@@ -26,14 +26,14 @@ public class RepositoryFactory {
         _albumsRepository = null;
     }
 
-    public static IRepository<Photo> getPhotosRepository() throws RepositoryException {
+    public static Repository<Photo> getPhotosRepository() throws RepositoryException {
         if (_photosRepository == null) {
             throw new RepositoryException("Repository is not initialized");
         }
         return _photosRepository;
     }
 
-    public static IRepository<Album> getAlbumsRepository() throws RepositoryException {
+    public static Repository<Album> getAlbumsRepository() throws RepositoryException {
         if (_albumsRepository == null) {
             throw new RepositoryException("Repository is not initialized");
         }

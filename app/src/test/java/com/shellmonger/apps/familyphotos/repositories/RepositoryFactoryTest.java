@@ -15,21 +15,21 @@ public class RepositoryFactoryTest {
 
     @Test (expected=RepositoryException.class)
     public void photosRepositoryNeedsInitialization() throws RepositoryException {
-        IRepository<Photo> p = RepositoryFactory.getPhotosRepository();
+        Repository<Photo> p = RepositoryFactory.getPhotosRepository();
         fail("Photos Repository is unexpectedly present");
     }
 
     @Test
     public void photosRepositoryCanBeRetrieved() throws RepositoryException {
         RepositoryFactory.initialize(null);
-        IRepository<Photo> photosRepository = RepositoryFactory.getPhotosRepository();
+        Repository<Photo> photosRepository = RepositoryFactory.getPhotosRepository();
         assertNotNull(photosRepository);
     }
 
     @Test
     public void albumsRepositoryCanBeRetrieved() throws RepositoryException {
         RepositoryFactory.initialize(null);
-        IRepository<Album> albumsRepository = RepositoryFactory.getAlbumsRepository();
+        Repository<Album> albumsRepository = RepositoryFactory.getAlbumsRepository();
         assertNotNull(albumsRepository);
     }
 }

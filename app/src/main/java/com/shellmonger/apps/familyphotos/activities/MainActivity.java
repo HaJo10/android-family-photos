@@ -7,12 +7,15 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 
 import com.shellmonger.apps.familyphotos.R;
+import com.shellmonger.apps.familyphotos.adapters.PhotoListAdapter;
 import com.shellmonger.apps.familyphotos.lifecycle.RequestCodes;
 import com.shellmonger.apps.familyphotos.models.Photo;
 import com.shellmonger.apps.familyphotos.repositories.RepositoryException;
@@ -24,6 +27,11 @@ import com.shellmonger.apps.familyphotos.repositories.RepositoryFactory;
  */
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
+
+    /**
+     * Reference for the recyclerview component
+     */
+    private RecyclerView mPhotoList;
 
     /**
      * Called when the activity is starting to initialize the activity.
@@ -41,6 +49,23 @@ public class MainActivity extends AppCompatActivity {
         // Configure the action bar
         Toolbar toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
+
+        // Set up the list
+        mPhotoList = findViewById(R.id.list_photos);
+        mPhotoList.setHasFixedSize(true);
+
+        // Configure a layout manager for the list
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        mPhotoList.setLayoutManager(layoutManager);
+
+        // Configure a data adapter for the list
+        try {
+            RecyclerView.Adapter listAdapter = new PhotoListAdapter();
+            mPhotoList.setAdapter(listAdapter);
+        } catch (RepositoryException err) {
+            Log.e(TAG, "RepositoryException while creating list adapter", err);
+            throw new RuntimeException("RepositoryException", err);
+        }
 
         // Hide the photo buttons if there is no camera
         PackageManager pm = getPackageManager();
