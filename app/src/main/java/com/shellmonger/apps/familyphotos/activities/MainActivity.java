@@ -11,12 +11,14 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 
 import com.shellmonger.apps.familyphotos.R;
 import com.shellmonger.apps.familyphotos.adapters.PhotoListAdapter;
 import com.shellmonger.apps.familyphotos.lifecycle.RequestCodes;
+import com.shellmonger.apps.familyphotos.listeners.PhotoListClickListener;
 import com.shellmonger.apps.familyphotos.models.Photo;
 import com.shellmonger.apps.familyphotos.repositories.RepositoryException;
 import com.shellmonger.apps.familyphotos.repositories.RepositoryFactory;
@@ -70,6 +72,34 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "RepositoryException while creating list adapter", err);
             throw new RuntimeException("RepositoryException", err);
         }
+
+        // Listen to clicks on the items within the RecyclerView
+        mPhotoList.addOnItemTouchListener(new PhotoListClickListener(this));
+
+        // Hook the click listener to the recyclerview
+//        mPhotoList.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+//            @Override
+//            public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
+//                View itemView = rv.findChildViewUnder(e.getX(), e.getY());
+//                if (itemView != null) {
+//                    int position = rv.getChildAdapterPosition(itemView);
+//                    Log.i(TAG, String.format("Clicked on item at position %d", position));
+//                    return true;
+//                }
+//                return false;
+//            }
+//
+//            @Override
+//            public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+//
+//            }
+//
+//            @Override
+//            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+//
+//            }
+//        });
+
 
         // Hide the photo buttons if there is no camera
         PackageManager pm = getPackageManager();

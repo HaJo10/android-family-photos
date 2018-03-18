@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Family Photos</string>
+    <string name="editor_name">Edit Photo</string>
     <string name="default_album_name">Uncategorized</string>
 </resources>

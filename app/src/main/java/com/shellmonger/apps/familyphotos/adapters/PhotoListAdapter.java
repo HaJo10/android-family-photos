@@ -112,12 +112,18 @@ public class PhotoListAdapter extends RecyclerView.Adapter<PhotoListAdapter.View
         @BindView(R.id.icon_location) ImageView mLocationIcon;
         @BindView(R.id.icon_tags) ImageView mTagsIcon;
 
+        private Photo mDataModel = null;
+
         public ViewHolder(View view) {
             super(view);
             ButterKnife.bind(this, view);
         }
 
+
+
         public void setModel(Photo model) {
+            mDataModel = model;
+
             // Set the caption (if available)
             if (model.getCaption() != null) {
                 mCaption.setText(model.getCaption());
