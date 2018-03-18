@@ -11,7 +11,7 @@ This is a companion Android app (with source code and all artifacts) for my blog
 7. [Data Models](https://medium.com/@FizzyInTheHall/building-a-production-android-app-7-data-models-6700b4168d2)
 8. [Data Models Redux](https://medium.com/@FizzyInTheHall/building-a-production-android-app-8-data-models-redux-e23359f2faee)
 9. [Repository Pattern](https://medium.com/@FizzyInTheHall/building-a-production-android-app-9-the-repository-pattern-fbae7dd398ce)
-
+10. [The Camera (Part 1)](https://medium.com/@FizzyInTheHall/building-a-production-android-app-10-the-camera-part-1-acce7274372e)
 
 # Design Files
 
