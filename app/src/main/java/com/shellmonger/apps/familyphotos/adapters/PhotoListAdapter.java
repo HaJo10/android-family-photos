@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class PhotoListAdapter extends RecyclerView.Adapter<PhotoListAdapter.ViewHolder> implements Observer {
     private static final String TAG = "PhotoListAdapter";
 
@@ -100,23 +103,18 @@ public class PhotoListAdapter extends RecyclerView.Adapter<PhotoListAdapter.View
      * View Holder for the adapter
      */
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public View mView;
+        @BindView(R.id.text_caption) TextView mCaption;
+        @BindView(R.id.text_album) TextView mAlbum;
+        @BindView(R.id.text_location) TextView mLocation;
+        @BindView(R.id.text_tags) TextView mTags;
 
-        private TextView mCaption, mAlbum, mLocation, mTags;
-        private ImageView mImage, mLocationIcon, mTagsIcon;
+        @BindView(R.id.image_picture) ImageView mImage;
+        @BindView(R.id.icon_location) ImageView mLocationIcon;
+        @BindView(R.id.icon_tags) ImageView mTagsIcon;
 
-        public ViewHolder(View v) {
-            super(v);
-            mView = v;
-
-            mCaption = v.findViewById(R.id.text_caption);
-            mAlbum = v.findViewById(R.id.text_album);
-            mLocation = v.findViewById(R.id.text_location);
-            mTags = v.findViewById(R.id.text_tags);
-
-            mImage = v.findViewById(R.id.image_picture);
-            mLocationIcon = v.findViewById(R.id.icon_location);
-            mTagsIcon = v.findViewById(R.id.icon_tags);
+        public ViewHolder(View view) {
+            super(view);
+            ButterKnife.bind(this, view);
         }
 
         public void setModel(Photo model) {

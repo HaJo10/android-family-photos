@@ -21,6 +21,9 @@ import com.shellmonger.apps.familyphotos.models.Photo;
 import com.shellmonger.apps.familyphotos.repositories.RepositoryException;
 import com.shellmonger.apps.familyphotos.repositories.RepositoryFactory;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * The main entry activity for the application.  This activity assumes that all the
  * singleton setups have already been done, so we don't need to do it separately.
@@ -29,9 +32,13 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     /**
+     * Reference for the replacement toolbar
+     */
+    @BindView(R.id.main_toolbar) Toolbar mToolbar;
+    /**
      * Reference for the recyclerview component
      */
-    private RecyclerView mPhotoList;
+    @BindView(R.id.list_photos) RecyclerView mPhotoList;
 
     /**
      * Called when the activity is starting to initialize the activity.
@@ -45,16 +52,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
 
         // Configure the action bar
-        Toolbar toolbar = findViewById(R.id.main_toolbar);
-        setSupportActionBar(toolbar);
+        setSupportActionBar(mToolbar);
 
         // Set up the list
-        mPhotoList = findViewById(R.id.list_photos);
         mPhotoList.setHasFixedSize(true);
-
-        // Configure a layout manager for the list
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         mPhotoList.setLayoutManager(layoutManager);
 
@@ -127,11 +131,10 @@ public class MainActivity extends AppCompatActivity {
         if (resultCode != RESULT_OK) {
             Log.e(TAG, "Camera did not produce data - aborting");
         }
-
         Bundle extras = data.getExtras();
         Bitmap picture = (Bitmap) extras.get("data");
 
-        // Do something with the picture
+        // Store the data in the repository
         try {
             Log.i(TAG, "Received image data from the camera");
             Photo newPhoto = new Photo();
@@ -139,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
             RepositoryFactory.getPhotosRepository().saveItem(newPhoto);
         } catch (RepositoryException err) {
             Log.e(TAG, "Cannot save new picture to repository", err);
+            throw new RuntimeException("RepositoryException", err);
         }
     }
 }
