@@ -76,31 +76,6 @@ public class MainActivity extends AppCompatActivity {
         // Listen to clicks on the items within the RecyclerView
         mPhotoList.addOnItemTouchListener(new PhotoListClickListener(this));
 
-        // Hook the click listener to the recyclerview
-//        mPhotoList.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
-//            @Override
-//            public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
-//                View itemView = rv.findChildViewUnder(e.getX(), e.getY());
-//                if (itemView != null) {
-//                    int position = rv.getChildAdapterPosition(itemView);
-//                    Log.i(TAG, String.format("Clicked on item at position %d", position));
-//                    return true;
-//                }
-//                return false;
-//            }
-//
-//            @Override
-//            public void onTouchEvent(RecyclerView rv, MotionEvent e) {
-//
-//            }
-//
-//            @Override
-//            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
-//
-//            }
-//        });
-
-
         // Hide the photo buttons if there is no camera
         PackageManager pm = getPackageManager();
         if (!pm.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
