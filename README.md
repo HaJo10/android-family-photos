@@ -12,6 +12,11 @@ This is a companion Android app (with source code and all artifacts) for my blog
 8. [Data Models Redux](https://medium.com/@FizzyInTheHall/building-a-production-android-app-8-data-models-redux-e23359f2faee)
 9. [Repository Pattern](https://medium.com/@FizzyInTheHall/building-a-production-android-app-9-the-repository-pattern-fbae7dd398ce)
 10. [The Camera (Part 1)](https://medium.com/@FizzyInTheHall/building-a-production-android-app-10-the-camera-part-1-acce7274372e)
+11. [The Camera (Part 2)](https://medium.com/@FizzyInTheHall/building-a-production-android-app-11-the-camera-part-2-3024fcd8b794)
+12. [The List](https://medium.com/@FizzyInTheHall/building-a-production-android-app-12-the-list-3f25c8418e1f)
+13. [Card View](https://medium.com/@FizzyInTheHall/building-a-production-android-app-13-card-view-cc008c7b391c)
+
+At this point, I refactored all the code into Kotlin. It took a step backwards, so stay tuned for more about that!
 
 # Design Files
 
