@@ -10,7 +10,6 @@ import com.shellmonger.apps.familyphotos.R
 import com.shellmonger.apps.familyphotos.lifecycle.ApplicationCrashHandler
 import com.shellmonger.apps.familyphotos.lifecycle.ApplicationWrapper
 import com.shellmonger.apps.familyphotos.lifecycle.Logger
-import com.shellmonger.apps.familyphotos.repositories.PostRepository
 
 /**
  * Application entry point - displays a splash screen while loading the
@@ -43,7 +42,6 @@ class SplashActivity : AppCompatActivity() {
 
         thread(start = true) {
             // Create any singletons required
-            PostRepository.initialize(this@SplashActivity)
 
             // Measure startup performance
             val elapsedTime: Long = System.currentTimeMillis() - ApplicationWrapper.startTime
