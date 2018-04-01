@@ -35,7 +35,7 @@ class PostRepository: Repository<Post> {
      */
     override fun get(id: String): Post {
         logger.debug("getById($id)")
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("Implement getById")
     }
 
     /**
@@ -46,7 +46,7 @@ class PostRepository: Repository<Post> {
      */
     override fun get(index: Int): Post {
         logger.debug("getByIndex($index)")
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("Implement getByIndex")
     }
 
     /**
@@ -54,7 +54,7 @@ class PostRepository: Repository<Post> {
      */
     override fun size(): Int {
         logger.debug("size()")
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("Implement size")
     }
 
     /**
@@ -65,7 +65,7 @@ class PostRepository: Repository<Post> {
      */
     override fun add(record: Post): Boolean {
         logger.debug("add($record)")
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("Implement add")
     }
 
     /**
@@ -84,7 +84,7 @@ class PostRepository: Repository<Post> {
      */
     override fun remove(id: String): Boolean {
         logger.debug("remove($id)")
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("Implement removeById")
     }
 
     /**
@@ -95,6 +95,6 @@ class PostRepository: Repository<Post> {
      */
     override fun update(record: Post): Boolean {
         logger.debug("update($record)")
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("Implement update")
     }
 }
