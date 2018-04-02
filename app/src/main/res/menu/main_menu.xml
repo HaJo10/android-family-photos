@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item
-        android:id="@+id/mainActionCamera"
-        android:icon="@drawable/ic_camera_48dp"
-        android:title="@string/mainActionCamera"
-        app:showAsAction="ifRoom"/>
-</menu>
