@@ -29,7 +29,7 @@ ext.support_version = "27.1.0"
 ext.arch_version = "1.1.1"
 ext.arch_room_version = "1.1.0-beta1"
 ext.arch_paging_version = "1.0.0-alpha7"
-ext.dagger_version = "2.15"
+ext.aws_sdk_version = "2.6.18"
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
@@ -55,10 +55,8 @@ dependencies {
     kapt "android.arch.lifecycle:compiler:$arch_version"
     kapt "android.arch.persistence.room:compiler:$arch_room_version"
 
-    // Dagger Dependency Injection
-    implementation "com.google.dagger:dagger:$dagger_version"
-    implementation "com.google.dagger:dagger-android:$dagger_version"
-    implementation "com.google.dagger:dagger-android-support:$dagger_version"
-    kapt "com.google.dagger:dagger-compiler:$dagger_version"
-    kapt "com.google.dagger:dagger-android-processor:$dagger_version"
+    // AWS Mobile SDK
+    implementation "com.amazonaws:aws-android-sdk-core:$aws_sdk_version"
+    implementation "com.amazonaws:aws-android-sdk-auth-core:$aws_sdk_version"
+    implementation "com.amazonaws:aws-android-sdk-pinpoint:$aws_sdk_version"
 }
