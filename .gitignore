@@ -5,7 +5,11 @@
 /.idea/modules.xml
 /.idea/workspace.xml
 /.idea/vcs.xml
+/.idea/markdown*
 .DS_Store
 /build
 /captures
 .externalNativeBuild
+
+// AWS Dependencies - config files
+awsconfiguration.json
