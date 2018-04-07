@@ -27,12 +27,11 @@ android {
 }
 
 ext {
-    support_version = "27.1.0"
+    anko_version = "0.10.4"
     arch_version = "1.1.1"
-    room_version = "1.1.0-beta1"
-    paging_version = "1.0.0-alpha7"
-    koin_version = "0.9.1"
     aws_sdk_version = "2.6.18"
+    koin_version = "0.9.1"
+    support_version = "27.1.0"
 }
 
 dependencies {
@@ -41,29 +40,29 @@ dependencies {
     // Test Libraries
     testImplementation 'junit:junit:4.12'
     testImplementation "android.arch.core:core-testing:$arch_version"
-    testImplementation "android.arch.persistence.room:testing:$room_version"
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 
-    // Kotlin Standard Library
+    // Kotlin Specific Library
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation "org.jetbrains.anko:anko:$anko_version"
+    implementation "org.jetbrains.anko:anko-constraint-layout:$anko_version"
 
     // Android Support Library
     implementation "com.android.support:appcompat-v7:$support_version"
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0-beta4'
 
     // Android Architecture Components
     implementation "android.arch.lifecycle:extensions:$arch_version"
-    implementation "android.arch.persistence.room:runtime:$room_version"
-    implementation "android.arch.paging:runtime:$paging_version"
     kapt "android.arch.lifecycle:compiler:$arch_version"
-    kapt "android.arch.persistence.room:compiler:$room_version"
 
     // Dependency Injection
     implementation "org.koin:koin-android:$koin_version"
+    implementation "org.koin:koin-android-architecture:$koin_version"
 
     // AWS Mobile SDK
     implementation "com.amazonaws:aws-android-sdk-core:$aws_sdk_version"
     implementation "com.amazonaws:aws-android-sdk-auth-core:$aws_sdk_version"
+    implementation "com.amazonaws:aws-android-sdk-auth-userpools:$aws_sdk_version"
     implementation "com.amazonaws:aws-android-sdk-pinpoint:$aws_sdk_version"
 }

@@ -6,4 +6,13 @@
     </style>
 
     <style name="SplashScreenTheme" parent="Theme.AppCompat.NoActionBar"/>
+
+    <style name="ToolbarTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="android:textColorSecondary">@android:color/black</item>
+    </style>
+
+    <style name="LoginFormTheme" parent="Base.Theme.AppCompat.Dialog.Alert">
+
+    </style>
+
 </resources>

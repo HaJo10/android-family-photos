@@ -3,6 +3,7 @@ package com.shellmonger.apps.familyphotos.ui
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import com.shellmonger.apps.familyphotos.R
 import com.shellmonger.apps.familyphotos.lifecycle.ApplicationWrapper
 import com.shellmonger.apps.familyphotos.services.interfaces.AnalyticsService
@@ -17,6 +18,10 @@ import kotlin.concurrent.thread
  * d) Transitioning to the main activity
  */
 class SplashActivity : AppCompatActivity() {
+    companion object {
+        val TAG: String = this::class.java.simpleName
+    }
+
     /**
      * Analytics service (provided via dependency injection)
      */
@@ -28,7 +33,9 @@ class SplashActivity : AppCompatActivity() {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate()")
         setContentView(R.layout.activity_splash)
+
 
         // Record the analyticsService start
         analyticsService.startSession()
@@ -36,6 +43,8 @@ class SplashActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        Log.d(TAG, "onResume()")
+
         thread(start = true) {
             // Initialize any repositories or other singletons
 

@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Family Photos</string>
+
+    <string name="action_login">Sign In</string>
+    <string name="action_logout">Sign Out</string>
+    <string name="loginform_title">Sign In</string>
+    <string name="hint_username">Username</string>
+    <string name="hint_password">Password</string>
+    <string name="amazon_cognito_logo">Amazon Cognito Logo</string>
 </resources>
