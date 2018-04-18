@@ -3,6 +3,17 @@ package com.shellmonger.apps.familyphotos.services.interfaces
 import android.arch.lifecycle.LiveData
 import com.shellmonger.apps.familyphotos.models.User
 
+enum class IdentityRequest {
+    NEED_CREDENTIALS,
+    NEED_NEWPASSWORD,
+    NEED_MULTIFACTORCODE,
+    SUCCESS,
+    FAILURE
+}
+
+typealias IdentityResponse = (Map<String, String>?) -> Unit
+typealias IdentityHandler = (IdentityRequest, Map<String, String>?, IdentityResponse) -> Unit
+
 interface IdentityManager {
     /**
      * Property for the current user record - null if the user is not signed in
@@ -12,10 +23,10 @@ interface IdentityManager {
     /**
      * Sign in with a username / password
      */
-    fun signin(username: String, password: String)
+    fun initiateSignin(handler: IdentityHandler)
 
     /**
      * Sign out of the system
      */
-    fun signout()
+    fun initiateSignout(handler: IdentityHandler)
 }

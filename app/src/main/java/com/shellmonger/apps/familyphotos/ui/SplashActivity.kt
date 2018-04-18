@@ -19,7 +19,7 @@ import kotlin.concurrent.thread
  */
 class SplashActivity : AppCompatActivity() {
     companion object {
-        val TAG: String = this::class.java.simpleName
+        private val TAG: String = this::class.java.simpleName
     }
 
     /**

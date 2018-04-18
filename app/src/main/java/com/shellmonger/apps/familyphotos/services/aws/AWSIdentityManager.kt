@@ -3,6 +3,7 @@ package com.shellmonger.apps.familyphotos.services.aws
 import android.content.Context
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import com.amazonaws.mobile.auth.core.internal.util.ThreadUtils.runOnUiThread
 import com.amazonaws.mobile.config.AWSConfiguration
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoDevice
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserPool
@@ -12,9 +13,13 @@ import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.Auth
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.ChallengeContinuation
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.MultiFactorAuthenticationContinuation
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.handlers.AuthenticationHandler
+import com.shellmonger.apps.familyphotos.models.TokenType
 import com.shellmonger.apps.familyphotos.models.User
+import com.shellmonger.apps.familyphotos.services.interfaces.IdentityHandler
 import com.shellmonger.apps.familyphotos.services.interfaces.IdentityManager
+import com.shellmonger.apps.familyphotos.services.interfaces.IdentityRequest
 import java.lang.Exception
+import kotlin.concurrent.thread
 
 class AWSIdentityManager(context: Context) : IdentityManager {
     /**
@@ -23,7 +28,7 @@ class AWSIdentityManager(context: Context) : IdentityManager {
     private val mutableCurrentUser: MutableLiveData<User> = MutableLiveData()
 
     /**
-     * Reference to cognito user pools
+     * Reference to cognito user pools - needed in the AWSAuthenticatorActivity
      */
     private val userPool: CognitoUserPool
 
@@ -41,52 +46,111 @@ class AWSIdentityManager(context: Context) : IdentityManager {
     /**
      * Sign in with a username / password
      */
-    override fun signin(username: String, password: String) {
-        val cognitoUser = userPool.currentUser
+    override fun initiateSignin(handler: IdentityHandler) {
+        val user = User()
 
-        val authHandler = object : AuthenticationHandler {
-            override fun onSuccess(userSession: CognitoUserSession?, newDevice: CognitoDevice?) {
-                userSession?.let {
-                    val internalUser = User(cognitoUser.userId, userSession.username)
-                    mutableCurrentUser.value = internalUser
+        thread(start = true) {
+            userPool.currentUser.getSession(object : AuthenticationHandler {
+                override fun onSuccess(userSession: CognitoUserSession?, newDevice: CognitoDevice?) {
+                    runOnUiThread {
+                        userSession?.let {
+                            user.username = it.username
+                            user.tokens[TokenType.ACCESS_TOKEN] = it.accessToken.jwtToken
+                            user.tokens[TokenType.ID_TOKEN] = it.idToken.jwtToken
+                            user.tokens[TokenType.REFRESH_TOKEN] = it.refreshToken.token
+                        }
+                        mutableCurrentUser.value = user
+                        handler(IdentityRequest.SUCCESS, null) { /* Do Nothing */ }
+                    }
                 }
-            }
 
-            override fun onFailure(exception: Exception?) {
-                // Do something with the failure here - this probably means setting an
-                // error property and then setting state to FAILED, which is picked up
-                // via LiveData<> observers
-            }
-
-            override fun getAuthenticationDetails(continuation: AuthenticationContinuation?, userId: String?) {
-                val authDetails = AuthenticationDetails(username, password, null)
-                continuation?.let {
-                    it.setAuthenticationDetails(authDetails)
-                    it.continueTask()
+                override fun onFailure(exception: Exception?) {
+                    runOnUiThread {
+                        handler(IdentityRequest.FAILURE, mapOf("message" to exception!!.message!!)) { /* Do Nothing */ }
+                    }
                 }
-            }
 
-            override fun authenticationChallenge(continuation: ChallengeContinuation?) {
-                // Custom challenge (e.g. TOTP) - handle the same way as MFA codes
-            }
+                override fun getAuthenticationDetails(continuation: AuthenticationContinuation?, userId: String?) {
+                    runOnUiThread {
+                        val request = HashMap<String,String>()
+                        userId?.let { request["username"] = it }
+                        handler(IdentityRequest.NEED_CREDENTIALS, request) { response ->
+                            if (response != null) {
+                                thread(start = true) {
+                                    val authDetails = AuthenticationDetails(
+                                        response["username"] ?: "",
+                                        response["password"] ?: "",
+                                        null
+                                    )
+                                    with (continuation!!) {
+                                        setAuthenticationDetails(authDetails)
+                                        continueTask()
+                                    }
+                                }
+                            } else {
+                                handler(IdentityRequest.FAILURE, mapOf("message" to "Invalid response for credentials")) { /* Do Nothing */ }
+                            }
+                        }
+                    }
+                }
 
-            override fun getMFACode(continuation: MultiFactorAuthenticationContinuation?) {
-                // If you need to deal with MFA, do it here - generally speaking, add a state
-                // to the repository that is mutated according to the requirements.  The activity
-                // (via the view model and observers) puts up an MFA request and submits
-                continuation?.continueTask()
-            }
+               override fun authenticationChallenge(continuation: ChallengeContinuation?) {
+                    if (continuation != null) {
+                        when (continuation.challengeName) {
+                            "NEW_PASSWORD_REQUIRED" -> {
+                                runOnUiThread {
+                                    handler(IdentityRequest.NEED_NEWPASSWORD, null) { response ->
+                                        if (response != null) {
+                                            thread(start = true) {
+                                                with(continuation) {
+                                                    parameters["NEW_PASSWORD"] = response["password"] ?: ""
+                                                    continueTask()
+                                                }
+                                            }
+                                        } else {
+                                            handler(IdentityRequest.FAILURE, mapOf("message" to "Invalid response for new password")) { /* Do Nothing */ }
+                                        }
+                                    }
+                                }
 
+                            }
+
+                            else -> {
+                                runOnUiThread {
+                                    handler(IdentityRequest.FAILURE, mapOf("message" to "Invalid authentication challenge")) { /* Do Nothing */ }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                override fun getMFACode(continuation: MultiFactorAuthenticationContinuation?) {
+                    runOnUiThread {
+                        handler(IdentityRequest.NEED_MULTIFACTORCODE, null) { response ->
+                            if (response != null) {
+                                thread(start = true) {
+                                    with (continuation!!) {
+                                        setMfaCode(response["mfaCode"] ?: "")
+                                        continueTask()
+                                    }
+                                }
+                            } else {
+                                handler(IdentityRequest.FAILURE, mapOf("messagfe" to "Invalid MFA response")) { /* Do Nothing */ }
+                            }
+                        }
+                    }
+                }
+            })
         }
-        cognitoUser.getSession(authHandler)
     }
 
     /**
      * Sign out of the system
      */
-    override fun signout() {
-        val cognitoUser = userPool.currentUser
-        cognitoUser.signOut()
+    override fun initiateSignout(handler: IdentityHandler) {
+        userPool.currentUser.signOut()
         mutableCurrentUser.value = null
+        handler(IdentityRequest.SUCCESS, null) { /* Do Nothing */ }
     }
+
 }

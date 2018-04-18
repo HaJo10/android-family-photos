@@ -1,8 +1,7 @@
 package com.shellmonger.apps.familyphotos.ui
 
-import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.arch.lifecycle.Observer
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -10,12 +9,11 @@ import android.support.v7.view.menu.MenuBuilder
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.EditText
 import com.shellmonger.apps.familyphotos.R
-import com.shellmonger.apps.familyphotos.extensions.getContent
 import com.shellmonger.apps.familyphotos.extensions.getShowAsAction
 import com.shellmonger.apps.familyphotos.extensions.setIconColor
 import com.shellmonger.apps.familyphotos.extensions.setIconsVisible
+import com.shellmonger.apps.familyphotos.services.interfaces.IdentityRequest
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.*
 import org.koin.android.architecture.ext.viewModel
@@ -26,7 +24,7 @@ import org.koin.android.architecture.ext.viewModel
  */
 class MainActivity : AppCompatActivity() {
     companion object {
-        val TAG: String = this::class.java.simpleName
+        private val TAG: String = this::class.java.simpleName
     }
 
     /**
@@ -106,21 +104,8 @@ class MainActivity : AppCompatActivity() {
      * Hook called when the user requests to sign-in to the application
      */
     private fun onLoginMenuItemSelected(): Boolean {
-        // Close the options menu
-        closeOptionsMenu()
-
-        // Produce the Alert dialog with the login form
-        val formView = layoutInflater.inflate(R.layout.login_form, null, false)
-        val username = formView.find<EditText>(R.id.login_form_username)
-        val password = formView.find<EditText>(R.id.login_form_password)
-
-        AlertDialog.Builder(this)
-            .setView(formView)
-            .setNegativeButton("Cancel") { _, _ -> toast("Cancelled") }
-            .setPositiveButton("Sign In") { _, _ -> model.signin(username.getContent(), password.getContent()) }
-            .show()
-
-        // We handled the request
+        // This activity doesn't do auth - use the AuthenticatorActivity instead
+        startActivity(Intent(this, AuthenticatorActivity::class.java))
         return true
     }
 
@@ -133,11 +118,32 @@ class MainActivity : AppCompatActivity() {
 
         // Produce an Are You Sure? dialog
         alert("Are you sure you want to sign out?") {
-            yesButton { model.signout() }
+            yesButton { signout() }
             noButton { }
         }.show()
 
         // We handled the request
         return true
+    }
+
+    /**
+     * Sign us out!
+     */
+    private fun signout() {
+        model.initiateSignout {
+            request, _, _ -> when(request) {
+                IdentityRequest.SUCCESS -> {
+                    toast("Signout successful")
+                }
+
+                IdentityRequest.FAILURE -> {
+                    toast("Signout failed")
+                }
+
+                else -> {
+                    toast("Invalid request: $request")
+                }
+            }
+        }
     }
 }

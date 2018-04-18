@@ -4,7 +4,10 @@
     <string name="action_login">Sign In</string>
     <string name="action_logout">Sign Out</string>
     <string name="loginform_title">Sign In</string>
-    <string name="hint_username">Username</string>
-    <string name="hint_password">Password</string>
-    <string name="amazon_cognito_logo">Amazon Cognito Logo</string>
+    <string name="hint_username"><i>Email Address</i></string>
+    <string name="hint_password"><i>Password</i></string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="loginform_signup_msg">No account? Sign up now!</string>
+    <string name="hint_mfaPrompt">Code</string>
+    <string name="default_mfa_instructions">Enter the code we just sent to you</string>
 </resources>

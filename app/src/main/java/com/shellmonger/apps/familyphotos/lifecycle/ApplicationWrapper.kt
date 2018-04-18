@@ -2,6 +2,7 @@ package com.shellmonger.apps.familyphotos.lifecycle
 
 import android.app.Application
 import com.shellmonger.apps.familyphotos.services.aws.AWSAnalyticsService
+import com.shellmonger.apps.familyphotos.services.aws.AWSIdentityManager
 import com.shellmonger.apps.familyphotos.services.interfaces.AnalyticsService
 import com.shellmonger.apps.familyphotos.services.interfaces.IdentityManager
 import com.shellmonger.apps.familyphotos.services.mock.MockIdentityManager
@@ -16,7 +17,7 @@ import org.koin.dsl.module.applicationContext
  */
 val appModule : Module = applicationContext {
     bean { AWSAnalyticsService(get()) as AnalyticsService }
-    bean { MockIdentityManager() as IdentityManager }
+    bean { AWSIdentityManager(get()) as IdentityManager }
 
     viewModel { MainActivityViewModel(get()) }
 }
