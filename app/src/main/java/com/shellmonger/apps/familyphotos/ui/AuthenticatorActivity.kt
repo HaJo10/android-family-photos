@@ -1,8 +1,8 @@
 package com.shellmonger.apps.familyphotos.ui
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.EditText
 import android.widget.TextView
@@ -11,25 +11,24 @@ import com.shellmonger.apps.familyphotos.extensions.afterTextChanged
 import com.shellmonger.apps.familyphotos.extensions.getContent
 import com.shellmonger.apps.familyphotos.extensions.isValidEmail
 import com.shellmonger.apps.familyphotos.extensions.validate
-import com.shellmonger.apps.familyphotos.services.interfaces.IdentityManager
 import com.shellmonger.apps.familyphotos.services.interfaces.IdentityRequest
 import kotlinx.android.synthetic.main.activity_authenticator.*
 import org.jetbrains.anko.*
 import org.jetbrains.anko.sdk25.coroutines.onClick
-import org.koin.android.ext.android.inject
+import org.koin.android.architecture.ext.viewModel
 
 /**
  * Deals with authentication - sign-up and sign-in
  */
-class AuthenticatorActivity : Activity() {
+class AuthenticatorActivity : AppCompatActivity() {
     companion object {
         private val TAG: String = this::class.java.simpleName
     }
 
     /**
-     * The identityManager for this application
+     * View model for this activity
      */
-    private val identityManager: IdentityManager by inject()
+    private val model by viewModel<AuthenticatorActivityViewModel>()
 
     /**
      * Called when the activity is starting. This is where most initialization should go: calling
@@ -88,7 +87,7 @@ class AuthenticatorActivity : Activity() {
      */
     @SuppressLint("InflateParams")
     private fun handleLogin() {
-        identityManager.initiateSignin {
+        model.initiateSignin {
             request, params, callback -> when(request) {
                 IdentityRequest.NEED_CREDENTIALS -> {
                     Log.d(TAG, "NEED_CREDENTIALS")

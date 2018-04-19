@@ -9,7 +9,7 @@ import com.shellmonger.apps.familyphotos.services.interfaces.IdentityRepository
 /**
  * ViewModel for the MainActivity - this is based on the Android Architecture Components
  */
-class MainActivityViewModel(private val identityRepository: IdentityRepository) : ViewModel() {
+class AuthenticatorActivityViewModel(private val identityRepository: IdentityRepository) : ViewModel() {
     /**
      * Current user record, or null if the user is not logged in.
      */
@@ -19,5 +19,5 @@ class MainActivityViewModel(private val identityRepository: IdentityRepository) 
     /**
      * Sign-out operation
      */
-    fun initiateSignout(handler: IdentityHandler) = identityRepository.initiateSignout(handler)
+    fun initiateSignin(handler: IdentityHandler) = identityRepository.initiateSignin(handler)
 }

@@ -6,10 +6,10 @@ import android.util.Log
 import com.amazonaws.mobile.auth.core.internal.util.ThreadUtils.runOnUiThread
 import com.shellmonger.apps.familyphotos.models.User
 import com.shellmonger.apps.familyphotos.services.interfaces.IdentityHandler
-import com.shellmonger.apps.familyphotos.services.interfaces.IdentityManager
+import com.shellmonger.apps.familyphotos.services.interfaces.IdentityRepository
 import com.shellmonger.apps.familyphotos.services.interfaces.IdentityRequest
 
-class MockIdentityManager : IdentityManager {
+class MockIdentityRepository : IdentityRepository {
     companion object {
         private val TAG: String = this::class.java.simpleName
     }

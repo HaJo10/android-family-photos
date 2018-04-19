@@ -14,7 +14,7 @@ enum class IdentityRequest {
 typealias IdentityResponse = (Map<String, String>?) -> Unit
 typealias IdentityHandler = (IdentityRequest, Map<String, String>?, IdentityResponse) -> Unit
 
-interface IdentityManager {
+interface IdentityRepository {
     /**
      * Property for the current user record - null if the user is not signed in
      */
