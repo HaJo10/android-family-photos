@@ -29,4 +29,9 @@ interface IdentityRepository {
      * Sign out of the system
      */
     fun initiateSignout(handler: IdentityHandler)
+
+    /**
+     * Forgot Password flow
+     */
+    fun initiateForgotPassword(handler: IdentityHandler)
 }

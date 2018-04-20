@@ -12,6 +12,8 @@ import com.shellmonger.apps.familyphotos.services.interfaces.IdentityRequest
 class MockIdentityRepository : IdentityRepository {
     companion object {
         private val TAG: String = this::class.java.simpleName
+
+        private val DO_NOTHING: (Map<String, String>?) -> Unit = { }
     }
 
     private val mutableCurrentUser: MutableLiveData<User?> = MutableLiveData()
@@ -41,7 +43,7 @@ class MockIdentityRepository : IdentityRepository {
                     for (key in response.keys) parameters[key] = response[key] ?: ""
                     if (!parametersAreValid(parameters)) {
                         Log.d(TAG, "initiateSignin: triggering FAILURE")
-                        handler(IdentityRequest.FAILURE, mapOf("message" to "Invalid parameters")) { /* Do Nothing */ }
+                        handler(IdentityRequest.FAILURE, mapOf("message" to "Invalid parameters"), DO_NOTHING)
                     } else {
                         Log.d(TAG, "initiateSignin: triggering NEED_MULTIFACTORCODE")
                         handler(IdentityRequest.NEED_MULTIFACTORCODE, mapOf("deliveryVia" to "SMS", "deliveryTo" to "+17205551212"))
@@ -51,22 +53,22 @@ class MockIdentityRepository : IdentityRepository {
                                 val mfaCode = parameters["mfaCode"] ?: ""
                                 if (mfaCode.length != 6) {
                                     Log.d(TAG, "initiateSignin: triggering FAILURE")
-                                    handler(IdentityRequest.FAILURE, mapOf("message" to "Invalid mfa code $mfaCode - length = ${mfaCode.length}")) { /* Do Nothing */ }
+                                    handler(IdentityRequest.FAILURE, mapOf("message" to "Invalid mfa code $mfaCode - length = ${mfaCode.length}"), DO_NOTHING)
                                 } else {
                                     val newUser = User()
                                     newUser.username = parameters["username"]!!
                                     mutableCurrentUser.value = newUser
                                     Log.d(TAG, "initiateSignin: triggering SUCCESS")
-                                    handler(IdentityRequest.SUCCESS, parameters) { /* Do Nothing */ }
+                                    handler(IdentityRequest.SUCCESS, parameters, DO_NOTHING)
                                 }
                             } else {
                                 Log.d(TAG, "initiateSignin: triggering FAILURE")
-                                handler(IdentityRequest.FAILURE, mapOf("message" to "Invalid mfa request response")) { /* Do Nothing */ }
+                                handler(IdentityRequest.FAILURE, mapOf("message" to "Invalid mfa request response"), DO_NOTHING)
                             }
                         }
                     }
                 } else
-                    handler(IdentityRequest.FAILURE, mapOf("message" to "Invalid request response")) { /* Do Nothing */ }
+                    handler(IdentityRequest.FAILURE, mapOf("message" to "Invalid request response"), DO_NOTHING)
             }
         }
     }
@@ -74,7 +76,7 @@ class MockIdentityRepository : IdentityRepository {
     /**
      * Determines if the parameters are valid
      */
-    private fun parametersAreValid(parameters: Map<String,String>): Boolean {
+    private fun parametersAreValid(parameters: Map<String, String>): Boolean {
         val username = parameters["username"] ?: ""
         val password = parameters["password"] ?: ""
         return !(username.isEmpty() || password.isEmpty())
@@ -85,9 +87,47 @@ class MockIdentityRepository : IdentityRepository {
      */
     override fun initiateSignout(handler: IdentityHandler) {
         runOnUiThread {
-            Log.d(TAG,"initiateSIgnout: triggering SUCCESS")
+            Log.d(TAG, "initiateSignout: triggering SUCCESS")
             mutableCurrentUser.value = null
-            handler(IdentityRequest.SUCCESS, HashMap()) { /* Do Nothing */ }
+            handler(IdentityRequest.SUCCESS, HashMap(), DO_NOTHING)
         }
+    }
+
+    override fun initiateForgotPassword(handler: IdentityHandler) {
+        val parameters: MutableMap<String, String> = HashMap()
+        parameters["username"] = ""
+        parameters["password"] = ""
+
+        runOnUiThread {
+            Log.d(TAG, "initiateForgotPassword: triggering NEED_CREDENTIALS")
+            handler(IdentityRequest.NEED_CREDENTIALS, parameters)
+            { response ->
+                if (response != null) {
+                    for (key in response.keys) parameters[key] = response[key] ?: ""
+                    if (parametersAreValid(parameters)) {
+                        Log.d(TAG, "initiateForgotPassword: triggering NEED_MULTIFACTORCODE")
+                        handler(IdentityRequest.NEED_MULTIFACTORCODE, mapOf("deliveryVia" to "SMS", "deliveryTo" to "+17205551212"))
+                        { mfaResponse ->
+                            if (mfaResponse != null) {
+                                for (key in mfaResponse.keys) parameters[key] = mfaResponse[key] ?: ""
+                                val mfaCode = parameters["mfaCode"] ?: ""
+                                if (mfaCode.length == 6)
+                                    handler(IdentityRequest.SUCCESS, parameters, DO_NOTHING)
+                                else
+                                    errorMessage(handler, "Invalid MFA Code")
+                            } else
+                                errorMessage(handler, "Invalid MFA request response")
+                        }
+                    } else
+                        errorMessage(handler, "Invalid parameters")
+                } else
+                    errorMessage(handler, "Invalid request response")
+            }
+        }
+    }
+
+    private fun errorMessage(handler: IdentityHandler, message: String) {
+        Log.d(TAG, "triggering Failure")
+        handler(IdentityRequest.FAILURE, mapOf("message" to message), DO_NOTHING)
     }
 }

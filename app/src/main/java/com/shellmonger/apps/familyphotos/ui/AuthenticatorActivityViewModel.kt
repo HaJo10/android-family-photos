@@ -17,7 +17,12 @@ class AuthenticatorActivityViewModel(private val identityRepository: IdentityRep
         get() = identityRepository.currentUser
 
     /**
-     * Sign-out operation
+     * Sign-in operation
      */
     fun initiateSignin(handler: IdentityHandler) = identityRepository.initiateSignin(handler)
+
+    /**
+     * Forgot Password operation
+     */
+    fun initiateForgotPassword(handler: IdentityHandler) = identityRepository.initiateForgotPassword(handler)
 }

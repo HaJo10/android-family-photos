@@ -5,6 +5,8 @@ import com.shellmonger.apps.familyphotos.services.aws.AWSAnalyticsService
 import com.shellmonger.apps.familyphotos.services.aws.AWSIdentityRepository
 import com.shellmonger.apps.familyphotos.services.interfaces.AnalyticsService
 import com.shellmonger.apps.familyphotos.services.interfaces.IdentityRepository
+import com.shellmonger.apps.familyphotos.services.mock.MockAnalyticsService
+import com.shellmonger.apps.familyphotos.services.mock.MockIdentityRepository
 import com.shellmonger.apps.familyphotos.ui.MainActivityViewModel
 import com.shellmonger.apps.familyphotos.ui.AuthenticatorActivityViewModel
 import org.koin.android.architecture.ext.viewModel
@@ -13,12 +15,20 @@ import org.koin.dsl.module.Module
 import org.koin.dsl.module.applicationContext
 
 /**
- * List of dependency injected modules
+ * List of dependency injected modules - pick one of the servicesModule definitions
+ * and the viewModelsModule.
  */
-val appModule : Module = applicationContext {
+//val servicesModule : Module = applicationContext {
+//    bean { MockAnalyticsService() as AnalyticsService }
+//    bean { MockIdentityRepository() as IdentityRepository }
+//}
+
+val servicesModule : Module = applicationContext {
     bean { AWSAnalyticsService(get()) as AnalyticsService }
     bean { AWSIdentityRepository(get()) as IdentityRepository }
+}
 
+val viewModelsModule : Module = applicationContext {
     viewModel { MainActivityViewModel(get()) }
     viewModel { AuthenticatorActivityViewModel(get()) }
 }
@@ -46,6 +56,6 @@ class ApplicationWrapper : Application() {
         super.onCreate()
 
         // Initialize Koin dependency injection
-        startKoin(this, listOf(appModule))
+        startKoin(this, listOf(servicesModule, viewModelsModule))
     }
 }

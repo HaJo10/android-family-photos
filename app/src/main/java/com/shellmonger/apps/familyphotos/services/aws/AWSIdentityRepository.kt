@@ -8,11 +8,9 @@ import com.amazonaws.mobile.config.AWSConfiguration
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoDevice
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserPool
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserSession
-import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.AuthenticationContinuation
-import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.AuthenticationDetails
-import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.ChallengeContinuation
-import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.MultiFactorAuthenticationContinuation
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.*
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.handlers.AuthenticationHandler
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.handlers.ForgotPasswordHandler
 import com.shellmonger.apps.familyphotos.models.TokenType
 import com.shellmonger.apps.familyphotos.models.User
 import com.shellmonger.apps.familyphotos.services.interfaces.IdentityHandler
@@ -148,14 +146,12 @@ class AWSIdentityRepository(context: Context) : IdentityRepository {
                 runOnUiThread {
                     handler(IdentityRequest.NEED_MULTIFACTORCODE, null) { response ->
                         if (response != null) {
-//                            thread(start = true) {
-                                with (continuation!!) {
-                                    setMfaCode(response["mfaCode"] ?: "")
-                                    continueTask()
-                                }
-//                           }
+                            with (continuation!!) {
+                                setMfaCode(response["mfaCode"] ?: "")
+                                continueTask()
+                            }
                         } else {
-                            handler(IdentityRequest.FAILURE, mapOf("messagfe" to "Invalid MFA response")) { /* Do Nothing */ }
+                            handler(IdentityRequest.FAILURE, mapOf("message" to "Invalid MFA response")) { /* Do Nothing */ }
                         }
                     }
                 }
@@ -170,6 +166,72 @@ class AWSIdentityRepository(context: Context) : IdentityRepository {
         userPool.currentUser.signOut()
         mutableCurrentUser.value = null
         handler(IdentityRequest.SUCCESS, null) { /* Do Nothing */ }
+    }
+
+    override fun initiateForgotPassword(handler: IdentityHandler) {
+        var username = ""
+        var password = ""
+
+        runOnUiThread {
+            handler(IdentityRequest.NEED_CREDENTIALS, null) {
+                response -> if (response != null) {
+                    username = response["username"] ?: ""
+                    password = response["password"] ?: ""
+                    if (username.isEmpty() || password.isEmpty()) {
+                        handler(IdentityRequest.FAILURE, mapOf("message" to "Invalid username or password")) {/* Do Nothing */ }
+                    } else {
+                        userPool.getUser(username).forgotPasswordInBackground(object : ForgotPasswordHandler {
+                            /**
+                             * This is called after successfully setting new password for a user.
+                             * The new password can new be used to authenticate this user.
+                             */
+                            override fun onSuccess() {
+                                runOnUiThread {
+                                    handler(IdentityRequest.SUCCESS, null) { /* Do Nothing */ }
+                                }
+                            }
+
+                            /**
+                             * This is called for all fatal errors encountered during the password reset process
+                             * Probe {@exception} for cause of this failure.
+                             * @param exception REQUIRED: Contains failure details.
+                             */
+                            override fun onFailure(exception: Exception?) {
+                                runOnUiThread {
+                                    val message = exception?.message ?: "Unknown error"
+                                    handler(IdentityRequest.FAILURE, mapOf("message" to message)) { /* Do Nothing */ }
+                                }
+                            }
+
+                            /**
+                             * A code may be required to confirm and complete the password reset process
+                             * Supply the new password and the confirmation code - which was sent through email/sms
+                             * to the continuation
+                             * @param continuation REQUIRED: Continuation to the next step.
+                             */
+                            override fun getResetCode(continuation: ForgotPasswordContinuation?) {
+                                runOnUiThread {
+                                    handler(IdentityRequest.NEED_MULTIFACTORCODE, mapOf("deliveryVia" to continuation!!.parameters.deliveryMedium, "deliveryTo" to continuation!!.parameters.destination)) {
+                                    response ->
+                                        if (response != null) {
+                                            with(continuation!!) {
+                                                setPassword(password)
+                                                setVerificationCode(response["mfaCode"])
+                                                continueTask()
+                                            }
+                                        } else {
+                                            handler(IdentityRequest.FAILURE, mapOf("message" to "Invalid MFA response")) { /* Do Nothing */ }
+                                        }
+                                    }
+                                }
+                            }
+                        })
+                    }
+                } else {
+                    handler(IdentityRequest.FAILURE, mapOf("message" to "Invalid Response")) { /* Do Nothing */ }
+                }
+            }
+        }
     }
 
 }

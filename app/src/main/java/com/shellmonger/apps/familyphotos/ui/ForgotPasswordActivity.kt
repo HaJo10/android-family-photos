@@ -1,10 +1,8 @@
 package com.shellmonger.apps.familyphotos.ui
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.Intent
-import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.os.Bundle
 import android.util.Log
 import android.widget.EditText
 import android.widget.TextView
@@ -15,14 +13,13 @@ import com.shellmonger.apps.familyphotos.extensions.isValidEmail
 import com.shellmonger.apps.familyphotos.extensions.validate
 import com.shellmonger.apps.familyphotos.services.interfaces.IdentityRequest
 import kotlinx.android.synthetic.main.activity_authenticator.*
-import org.jetbrains.anko.*
+import kotlinx.android.synthetic.main.activity_forgot_password.*
+import org.jetbrains.anko.alert
+import org.jetbrains.anko.find
 import org.jetbrains.anko.sdk25.coroutines.onClick
 import org.koin.android.architecture.ext.viewModel
 
-/**
- * Deals with authentication - sign-up and sign-in
- */
-class AuthenticatorActivity : AppCompatActivity() {
+class ForgotPasswordActivity : AppCompatActivity() {
     companion object {
         private val TAG: String = this::class.java.simpleName
     }
@@ -32,46 +29,43 @@ class AuthenticatorActivity : AppCompatActivity() {
      */
     private val model by viewModel<AuthenticatorActivityViewModel>()
 
-    /**
-     * Called when the activity is starting. This is where most initialization should go: calling
-     * setContentView(int) to inflate the activity's UI, initializing any view models, etc.
-     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_authenticator)
+        setContentView(R.layout.activity_forgot_password)
 
         // We should be able to close this activity, in which case we go back
         // to the prior activity.
-        authenticator_cancel_button.onClick { this@AuthenticatorActivity.finish() }
+        forgotpassword_cancel_button.onClick { this@ForgotPasswordActivity.finish() }
 
         // Hook up validator for email address and password.  In this case, we
         // do a minimal validation for the input as it will be checked by the
         // Amazon Cognito system as well.
-        loginform_username.validate({ s -> isUsernameValid(s) }, "Valid email address required")
+        forgotpassword_username.validate({ s -> isUsernameValid(s) }, "Valid email address required")
 
         // Now do the same for password.  We require a minimum length of 6 characters
-        loginform_password.validate({ s -> isPasswordValid(s) }, "Minimum 6 characters required")
+        forgotpassword_password.validate({ s -> isPasswordValid(s) }, "Minimum 6 characters required")
 
         // We only enable the login button when both the email address and password are both
         // valid.  To do this, we wire up an additional text listener on both to call the
         // checker
-        loginform_username.afterTextChanged { checkLoginEnabled() }
-        loginform_password.afterTextChanged { checkLoginEnabled() }
+        forgotpassword_username.afterTextChanged { checkSubmitEnabled() }
+        forgotpassword_password.afterTextChanged { checkSubmitEnabled() }
 
         // Wire up the form buttons
-        loginform_signin_button.onClick { handleLogin() }
-        loginform_signup_button.onClick { Log.d(TAG, "Sign-up not implemented") }
-        loginform_forgotpassword_button.onClick { startActivity(Intent(this@AuthenticatorActivity, ForgotPasswordActivity::class.java)) }
-        checkLoginEnabled()
+        forgotpassword_button.onClick { handleForgotPassword() }
+
+        // Call the checkSubmitEnabled to get into the right state
+        checkSubmitEnabled()
     }
 
     /**
      * Checks the loginform_username and loginform_password.  If both of them are
      * valid, then enable the signin button
      */
-    private fun checkLoginEnabled() {
-        loginform_signin_button.isEnabled = isUsernameValid(loginform_username.getContent())
-                && isPasswordValid(loginform_password.getContent())
+    private fun checkSubmitEnabled() {
+        forgotpassword_button.isEnabled =
+                isUsernameValid(forgotpassword_username.getContent())
+                && isPasswordValid(forgotpassword_password.getContent())
     }
 
     /**
@@ -85,28 +79,15 @@ class AuthenticatorActivity : AppCompatActivity() {
     private fun isPasswordValid(s: String): Boolean = s.length >= 6
 
     /**
-     * Handles the login event
+     * Handles the form submission event
      */
     @SuppressLint("InflateParams")
-    private fun handleLogin() {
-        model.initiateSignin {
+    private fun handleForgotPassword() {
+        model.initiateForgotPassword {
             request, params, callback -> when(request) {
                 IdentityRequest.NEED_CREDENTIALS -> {
                     Log.d(TAG, "NEED_CREDENTIALS")
-                    callback(mapOf("username" to loginform_username.getContent(), "password" to loginform_password.getContent()))
-                }
-
-                IdentityRequest.NEED_NEWPASSWORD -> {
-                    Log.d(TAG, "NEED_NEWPASSWORD")
-                    val newPasswordDialog = layoutInflater.inflate(R.layout.dialog_new_password, null)
-                    val passwordInput = newPasswordDialog.find(R.id.newpassworddialog_password) as EditText
-                    alert {
-                        title = "Enter New Password"
-                        customView = newPasswordDialog
-                        positiveButton("OK") {
-                            callback(mapOf("password" to passwordInput.getContent()))
-                        }
-                    }.show()
+                    callback(mapOf("username" to forgotpassword_username.getContent(), "password" to forgotpassword_password.getContent()))
                 }
 
                 IdentityRequest.NEED_MULTIFACTORCODE -> {
@@ -124,19 +105,25 @@ class AuthenticatorActivity : AppCompatActivity() {
                     }.show()
                 }
 
-                // Sucessful signin
                 IdentityRequest.SUCCESS -> {
                     Log.d(TAG, "SUCCESS")
-                    this@AuthenticatorActivity.finish()
+                    this@ForgotPasswordActivity.finish()
                 }
 
-                // Failed signin
                 IdentityRequest.FAILURE -> {
                     Log.d(TAG, "FAILURE")
-                    alert(params?.get("message") ?: "Error submitting credentials") {
-                        title = "Login Denied"
+                    alert(params?.get("message") ?: "Error submitting new credentials") {
+                        title = "Password Reset Failed"
                         positiveButton("Close") { /* Do nothing */ }
                     }.show()
+                }
+
+                else -> {
+                    Log.d(TAG, "Unexpected IdentityHandler callback")
+                    alert("We received an unexpected request from the backend service") {
+                        title = "Unexpected request"
+                        positiveButton("Close") { this@ForgotPasswordActivity.finish() }
+                    }
                 }
             }
         }
