@@ -5,12 +5,9 @@ import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import com.amazonaws.mobile.auth.core.internal.util.ThreadUtils.runOnUiThread
 import com.amazonaws.mobile.config.AWSConfiguration
-import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoDevice
-import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserPool
-import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserSession
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.*
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.*
-import com.amazonaws.mobileconnectors.cognitoidentityprovider.handlers.AuthenticationHandler
-import com.amazonaws.mobileconnectors.cognitoidentityprovider.handlers.ForgotPasswordHandler
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.handlers.*
 import com.shellmonger.apps.familyphotos.models.TokenType
 import com.shellmonger.apps.familyphotos.models.User
 import com.shellmonger.apps.familyphotos.services.interfaces.IdentityHandler
@@ -70,13 +67,40 @@ class AWSIdentityRepository(context: Context) : IdentityRepository {
      */
     override val currentUser: LiveData<User?> = mutableCurrentUser
 
-    private fun storeUserSession(userSession: CognitoUserSession) {
+    private fun storeUserSession(handler: IdentityHandler, userSession: CognitoUserSession) {
         val user = User()
         user.username = userSession.username
         user.tokens[TokenType.ACCESS_TOKEN] = userSession.accessToken.jwtToken
         user.tokens[TokenType.ID_TOKEN] = userSession.idToken.jwtToken
         user.tokens[TokenType.REFRESH_TOKEN] = userSession.refreshToken.token
-        runOnUiThread { mutableCurrentUser.value = user }
+        userPool.currentUser.getDetailsInBackground(object : GetDetailsHandler {
+            /**
+             * This method is called on successfully fetching user attributes.
+             * `attributesList` contains all attributes set for the user.
+             *
+             * @param cognitoUserDetails contains the users' details retrieved from the Cognito Service
+             */
+            override fun onSuccess(cognitoUserDetails: CognitoUserDetails?) = runOnUiThread {
+                if (cognitoUserDetails != null) {
+                    val userAttributes = cognitoUserDetails.attributes.attributes
+                    for (entry in userAttributes) user.userAttributes[entry.key] = entry.value
+                    mutableCurrentUser.value = user
+                    handler(IdentityRequest.SUCCESS, null, DO_NOTHING)
+                } else {
+                    handleFailure(handler, "Success with no details")
+                }
+            }
+
+            /**
+             * This method is called upon encountering errors during this operation.
+             * Probe `exception` for the cause of this exception.
+             *
+             * @param exception REQUIRED: Failure details.
+             */
+            override fun onFailure(exception: Exception?) = runOnUiThread {
+                handleFailure(handler, "Unkown error while getting user details")
+            }
+        })
     }
 
     /**
@@ -99,7 +123,7 @@ class AWSIdentityRepository(context: Context) : IdentityRepository {
                  */
                 override fun onSuccess(nullableUserSession: CognitoUserSession?, newDevice: CognitoDevice?) {
                     val userSession = checkNotNull(nullableUserSession) { "user session is null" }
-                    storeUserSession(userSession)
+                    storeUserSession(handler, userSession)
                     runOnUiThread { handler(IdentityRequest.SUCCESS, null, DO_NOTHING) }
                 }
 
@@ -130,10 +154,12 @@ class AWSIdentityRepository(context: Context) : IdentityRepository {
                         handler(IdentityRequest.NEED_CREDENTIALS, null) { nResponse ->
                             run {
                                 val response = checkNotNull(nResponse) { "Invalid identity response" }
-                                val username = response["username"] ?: ""
+                                val username = (response["username"] ?: "").replace('@','_').replace('.','_')
                                 val password = response["password"] ?: ""
                                 check(username.isNotEmpty()) { "Username is empty" }
                                 check(password.isNotEmpty()) { "Password is empty" }
+
+
 
                                 continuation.setAuthenticationDetails(AuthenticationDetails(username, password, null))
                                 continuation.continueTask()
@@ -211,10 +237,17 @@ class AWSIdentityRepository(context: Context) : IdentityRepository {
     /**
      * Initiate the forgot password flow
      */
-    override fun initiateForgotPassword(handler: IdentityHandler) {
-        runOnUiThread {
-            handler(IdentityRequest.NEED_CREDENTIALS, null) { response -> fpHasCredentials(handler, response) }
-        }
+    override fun initiateForgotPassword(handler: IdentityHandler)= runOnUiThread {
+        handler(IdentityRequest.NEED_CREDENTIALS, null) { response -> fpHasCredentials(handler, response) }
+    }
+
+    /**
+     * Initiate Flow: Sign up
+     *
+     * @param handler the Identity handler within the UI
+     */
+    override fun initiateSignup(handler: IdentityHandler) = runOnUiThread {
+        handler(IdentityRequest.NEED_SIGNUP, null) { response -> suHasInformation(handler, response) }
     }
 
     /**
@@ -269,7 +302,92 @@ class AWSIdentityRepository(context: Context) : IdentityRepository {
                 }
             })
         } catch (exception: Exception) {
-            handleFailure(handler, exception.message ?: "Unknown validation error")
+            handleFailure(handler, exception.message)
+        }
+    }
+
+    /**
+     * Handles the sign-up flow once we have information
+     */
+    private fun suHasInformation(handler: IdentityHandler, nResponse: Map<String, String>?) {
+        try {
+            val response = checkNotNull(nResponse) { "Invalid response from NEED_SIGNUP" }
+
+            val emailaddr = response["username"] ?: ""
+            val password = response["password"] ?: ""
+            val phone = response["phone"] ?: ""
+            val name = response["name"] ?: ""
+            check(emailaddr.isNotEmpty()) { "Email Address is empty" }
+            check(password.isNotEmpty()) { "Password is empty" }
+            check(phone.isNotEmpty()) { "Phone is empty" }
+            check(name.isNotEmpty()) { "Name is empty" }
+            val username = emailaddr.replace('@', '_').replace('.', '_')
+
+            // See https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html
+            // for a list of user attributes
+            val userAttributes = CognitoUserAttributes()
+            userAttributes.addAttribute("phone_number", phone)
+            userAttributes.addAttribute("email", emailaddr)
+            userAttributes.addAttribute("name", name)
+            userPool.signUpInBackground(username, password, userAttributes, null, object : SignUpHandler {
+                /**
+                 * This method is called successfully registering a new user.
+                 * Confirming the user may be required to activate the users account.
+                 *
+                 * @param user [CognitoUser]
+                 * @param state will be `true` is the user has been confirmed, otherwise `false`.
+                 * @param nDetails REQUIRED: Indicates the medium and destination of the confirmation code.
+                 */
+                override fun onSuccess(user: CognitoUser?, state: Boolean, nDetails: CognitoUserCodeDeliveryDetails?) = runOnUiThread {
+                    if (state) {
+                        // We don't need to confirm our identity
+                        handler(IdentityRequest.SUCCESS, null, DO_NOTHING)
+                    } else {
+                        // We've sent a code somewhere
+                        val details = checkNotNull(nDetails) { "Invalid destination details" }
+                        handler(IdentityRequest.NEED_MULTIFACTORCODE, mapOf("deliveryVia" to details.deliveryMedium, "deliveryTo" to details.destination)) { response ->
+                            suHasConfirmationCode(handler, user!!, response)
+                        }
+                    }
+                }
+
+                /**
+                 * This method is called when user registration has failed.
+                 * Probe `exception` for cause of the failure.
+                 *
+                 * @param exception REQUIRED: Failure details.
+                 */
+                override fun onFailure(exception: Exception?) = runOnUiThread {
+                    handleFailure(handler, exception?.message)
+                }
+            })
+        } catch (exception: Exception) {
+            handleFailure(handler, exception.message)
+        }
+    }
+
+    /**
+     * Handles the sign-up flow once we have the verification code
+     */
+    private fun suHasConfirmationCode(handler: IdentityHandler, user: CognitoUser, nResponse: Map<String, String>?) {
+        try {
+            val response = checkNotNull(nResponse) { "invalid MFA code response" }
+            val mfaCode = response["mfaCode"] ?: ""
+            user.confirmSignUpInBackground(mfaCode, false, object : GenericHandler {
+                /**
+                 * This callback method is invoked when the call has successfully completed.
+                 */
+                override fun onSuccess() = runOnUiThread { handler(IdentityRequest.SUCCESS, null, DO_NOTHING) }
+
+                /**
+                 * This callback method is invoked when call has failed. Probe `exception` for cause.
+                 *
+                 * @param exception REQUIRED: Failure details.
+                 */
+                override fun onFailure(exception: Exception?) = handleFailure(handler, exception?.message)
+            })
+        } catch (exception: Exception) {
+            handleFailure(handler, exception.message)
         }
     }
 

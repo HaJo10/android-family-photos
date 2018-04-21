@@ -4,6 +4,7 @@ import android.arch.lifecycle.LiveData
 import com.shellmonger.apps.familyphotos.models.User
 
 enum class IdentityRequest {
+    NEED_SIGNUP,
     NEED_CREDENTIALS,
     NEED_NEWPASSWORD,
     NEED_MULTIFACTORCODE,
@@ -34,4 +35,9 @@ interface IdentityRepository {
      * Forgot Password flow
      */
     fun initiateForgotPassword(handler: IdentityHandler)
+
+    /**
+     * Sign up for an account flow
+     */
+    fun initiateSignup(handler: IdentityHandler)
 }

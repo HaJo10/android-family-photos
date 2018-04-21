@@ -60,7 +60,7 @@ class AuthenticatorActivity : AppCompatActivity() {
 
         // Wire up the form buttons
         loginform_signin_button.onClick { handleLogin() }
-        loginform_signup_button.onClick { Log.d(TAG, "Sign-up not implemented") }
+        loginform_signup_button.onClick { startActivity(Intent(this@AuthenticatorActivity, SignupActivity::class.java)) }
         loginform_forgotpassword_button.onClick { startActivity(Intent(this@AuthenticatorActivity, ForgotPasswordActivity::class.java)) }
         checkLoginEnabled()
     }
@@ -137,6 +137,13 @@ class AuthenticatorActivity : AppCompatActivity() {
                         title = "Login Denied"
                         positiveButton("Close") { /* Do nothing */ }
                     }.show()
+                }
+
+                else -> {
+                    Log.d(TAG, "$request")
+                    alert("Unknown or unexpected identity request") {
+                        positiveButton("Close") { /* Do nothing */ }
+                    }
                 }
             }
         }

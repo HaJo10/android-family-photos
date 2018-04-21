@@ -12,14 +12,14 @@ import com.shellmonger.apps.familyphotos.extensions.getContent
 import com.shellmonger.apps.familyphotos.extensions.isValidEmail
 import com.shellmonger.apps.familyphotos.extensions.validate
 import com.shellmonger.apps.familyphotos.services.interfaces.IdentityRequest
-import kotlinx.android.synthetic.main.activity_authenticator.*
-import kotlinx.android.synthetic.main.activity_forgot_password.*
+import kotlinx.android.synthetic.main.activity_signup.*
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.find
 import org.jetbrains.anko.sdk25.coroutines.onClick
+import org.jetbrains.anko.toast
 import org.koin.android.architecture.ext.viewModel
 
-class ForgotPasswordActivity : AppCompatActivity() {
+class SignupActivity : AppCompatActivity() {
     companion object {
         private val TAG: String = this::class.java.simpleName
     }
@@ -35,28 +35,29 @@ class ForgotPasswordActivity : AppCompatActivity() {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_forgot_password)
+
+        setContentView(R.layout.activity_signup)
 
         // We should be able to close this activity, in which case we go back
         // to the prior activity.
-        forgotpassword_cancel_button.onClick { this@ForgotPasswordActivity.finish() }
+        signup_cancel_button.onClick { this@SignupActivity.finish() }
 
-        // Hook up validator for email address and password.  In this case, we
-        // do a minimal validation for the input as it will be checked by the
-        // Amazon Cognito system as well.
-        forgotpassword_username.validate({ s -> isUsernameValid(s) }, "Valid email address required")
-
-        // Now do the same for password.  We require a minimum length of 6 characters
-        forgotpassword_password.validate({ s -> isPasswordValid(s) }, "Minimum 6 characters required")
+        // Hook up validator for the fields
+        signup_username.validate({ s -> isUsernameValid(s) }, "Valid email address required")
+        signup_password.validate({ s -> isPasswordValid(s) }, "Minimum 6 characters required")
+        signup_phone.validate({ s -> isPhoneValid(s) }, "Valid phone number required")
+        signup_name.validate({ s -> isNameValid(s) }, "A name must be entered")
 
         // We only enable the login button when both the email address and password are both
         // valid.  To do this, we wire up an additional text listener on both to call the
         // checker
-        forgotpassword_username.afterTextChanged { checkSubmitEnabled() }
-        forgotpassword_password.afterTextChanged { checkSubmitEnabled() }
+        signup_username.afterTextChanged { checkSubmitEnabled() }
+        signup_password.afterTextChanged { checkSubmitEnabled() }
+        signup_phone.afterTextChanged { checkSubmitEnabled() }
+        signup_name.afterTextChanged { checkSubmitEnabled() }
 
         // Wire up the form buttons
-        forgotpassword_button.onClick { handleForgotPassword() }
+        signup_button.onClick { handleSignup() }
 
         // Call the checkSubmitEnabled to get into the right state
         checkSubmitEnabled()
@@ -67,9 +68,11 @@ class ForgotPasswordActivity : AppCompatActivity() {
      * valid, then enable the signin button
      */
     private fun checkSubmitEnabled() {
-        forgotpassword_button.isEnabled =
-                isUsernameValid(forgotpassword_username.getContent())
-                && isPasswordValid(forgotpassword_password.getContent())
+        signup_button.isEnabled =
+            isUsernameValid(signup_username.getContent())
+            && isPasswordValid(signup_password.getContent())
+            && isPhoneValid(signup_phone.getContent())
+            && isNameValid(signup_name.getContent())
     }
 
     /**
@@ -83,15 +86,30 @@ class ForgotPasswordActivity : AppCompatActivity() {
     private fun isPasswordValid(s: String): Boolean = s.length >= 6
 
     /**
+     * Checks to see if the full name is valid
+     */
+    private fun isNameValid(s: String): Boolean = s.isNotBlank()
+
+    /**
+     * Checks to see if the phone number is valid
+     */
+    private fun isPhoneValid(s: String): Boolean = s.isNotBlank()
+
+    /**
      * Handles the form submission event
      */
     @SuppressLint("InflateParams")
-    private fun handleForgotPassword() {
-        model.initiateForgotPassword {
+    private fun handleSignup() {
+        model.initiateSignup {
             request, params, callback -> when(request) {
-                IdentityRequest.NEED_CREDENTIALS -> {
-                    Log.d(TAG, "NEED_CREDENTIALS")
-                    callback(mapOf("username" to forgotpassword_username.getContent(), "password" to forgotpassword_password.getContent()))
+                IdentityRequest.NEED_SIGNUP -> {
+                    Log.d(TAG, "NEED_SIGNUP")
+                    val attrs: MutableMap<String, String> = HashMap()
+                    attrs["username"] = signup_username.getContent()
+                    attrs["password"] = signup_password.getContent()
+                    attrs["phone"] = signup_phone.getContent()
+                    attrs["name"] = signup_name.getContent()
+                    callback(attrs)
                 }
 
                 IdentityRequest.NEED_MULTIFACTORCODE -> {
@@ -109,26 +127,28 @@ class ForgotPasswordActivity : AppCompatActivity() {
                     }.show()
                 }
 
-                IdentityRequest.SUCCESS -> {
-                    Log.d(TAG, "SUCCESS")
-                    this@ForgotPasswordActivity.finish()
-                }
 
-                IdentityRequest.FAILURE -> {
-                    Log.d(TAG, "FAILURE")
-                    alert(params?.get("message") ?: "Error submitting new credentials") {
-                        title = "Password Reset Failed"
-                        positiveButton("Close") { /* Do nothing */ }
-                    }.show()
-                }
+            IdentityRequest.SUCCESS -> {
+                Log.d(TAG, "SUCCESS")
+                toast("Signup Successful")
+                this@SignupActivity.finish()
+            }
 
-                else -> {
-                    Log.d(TAG, "Unexpected IdentityHandler callback")
-                    alert("We received an unexpected request from the backend service") {
-                        title = "Unexpected request"
-                        positiveButton("Close") { this@ForgotPasswordActivity.finish() }
-                    }
+            IdentityRequest.FAILURE -> {
+                Log.d(TAG, "FAILURE")
+                alert(params?.get("message") ?: "Error submitting new credentials") {
+                    title = "Password Reset Failed"
+                    positiveButton("Close") { /* Do nothing */ }
+                }.show()
+            }
+
+            else -> {
+                Log.d(TAG, "Unexpected IdentityHandler callback")
+                alert("We received an unexpected request from the backend service") {
+                    title = "Unexpected request"
+                    positiveButton("Close") { this@SignupActivity.finish() }
                 }
+            }
             }
         }
     }

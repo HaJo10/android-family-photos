@@ -26,7 +26,8 @@
         </activity>
         <activity android:name=".ui.MainActivity" />
         <activity android:name=".ui.AuthenticatorActivity" />
-        <activity android:name=".ui.ForgotPasswordActivity"></activity>
+        <activity android:name=".ui.ForgotPasswordActivity" />
+        <activity android:name=".ui.SignupActivity"></activity>
     </application>
 
 </manifest>
