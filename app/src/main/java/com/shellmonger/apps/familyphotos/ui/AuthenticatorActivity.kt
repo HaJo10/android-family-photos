@@ -61,8 +61,31 @@ class AuthenticatorActivity : AppCompatActivity() {
         // Wire up the form buttons
         loginform_signin_button.onClick { handleLogin() }
         loginform_signup_button.onClick { startActivity(Intent(this@AuthenticatorActivity, SignupActivity::class.java)) }
-        loginform_forgotpassword_button.onClick { startActivity(Intent(this@AuthenticatorActivity, ForgotPasswordActivity::class.java)) }
+        loginform_forgotpassword_button.onClick {
+            val intent = Intent(this@AuthenticatorActivity, ForgotPasswordActivity::class.java)
+            intent.putExtra("login_username", loginform_username.getContent())
+            startActivity(intent)
+        }
+
+        // Check the state of the login button
         checkLoginEnabled()
+    }
+
+    /**
+     * Called after onRestoreInstanceState(Bundle), onRestart(), or onPause(), for your activity to
+     * start interacting with the user. This is a good place to begin animations, open exclusive-
+     * access devices (such as the camera), etc.
+     */
+    override fun onResume() {
+        super.onResume()
+
+        // If the username on the page is blank and there is a stored username,
+        // then update the username and password
+        if (loginform_username.getContent().isBlank() && (model.storedUsername.value ?: "").isNotEmpty()) {
+            loginform_username.text.append(model.storedUsername.value)
+            loginform_password.text.clear()
+            loginform_password.requestFocus()
+        }
     }
 
     /**
@@ -127,6 +150,7 @@ class AuthenticatorActivity : AppCompatActivity() {
                 // Sucessful signin
                 IdentityRequest.SUCCESS -> {
                     Log.d(TAG, "SUCCESS")
+                    model.updateStoredUsername(loginform_username.getContent())
                     this@AuthenticatorActivity.finish()
                 }
 

@@ -13,6 +13,7 @@ import com.shellmonger.apps.familyphotos.models.User
 import com.shellmonger.apps.familyphotos.services.interfaces.IdentityHandler
 import com.shellmonger.apps.familyphotos.services.interfaces.IdentityRepository
 import com.shellmonger.apps.familyphotos.services.interfaces.IdentityRequest
+import com.shellmonger.apps.familyphotos.services.mock.MockIdentityRepository
 import java.lang.Exception
 
 class AWSIdentityRepository(context: Context) : IdentityRepository {
@@ -23,12 +24,32 @@ class AWSIdentityRepository(context: Context) : IdentityRepository {
          * A lambda that does nothing - used for callbacks from an identity handler
          */
         private val DO_NOTHING: (Map<String, String>?) -> Unit = { /* Do Nothing */ }
+
+        /**
+         * The location of the shared preferences file
+         */
+        private val PREFS_FILE: String = "${this::class.java.canonicalName}.PREFS"
+
+        /**
+         * The name of the stored username in the shared preferences file
+         */
+        private const val USERNAME_PREF: String = "authenticator-username"
     }
 
     /**
      * The stored "current user" object
      */
     private val mutableCurrentUser: MutableLiveData<User> = MutableLiveData()
+
+    /**
+     * The stored username from shared preferences
+     */
+    private val mutableStoredUsername: MutableLiveData<String?> = MutableLiveData()
+
+    /**
+     * The link to the shared preferences store
+     */
+    private val sharedPreferences = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE)
 
     /**
      * Reference to cognito user pools - needed in the AWSAuthenticatorActivity
@@ -60,6 +81,9 @@ class AWSIdentityRepository(context: Context) : IdentityRepository {
             override fun authenticationChallenge(continuation: ChallengeContinuation?) { }
             override fun getMFACode(continuation: MultiFactorAuthenticationContinuation?) { }
         })
+
+        // Load the currently stored username from the SharedPreferences
+        mutableStoredUsername.value = sharedPreferences.getString(USERNAME_PREF, null)
     }
 
     /**
@@ -67,6 +91,14 @@ class AWSIdentityRepository(context: Context) : IdentityRepository {
      */
     override val currentUser: LiveData<User?> = mutableCurrentUser
 
+    /**
+     * Property for the currently stored username - null if the user has never logged in
+     */
+    override val storedUsername: LiveData<String?> = mutableStoredUsername
+
+    /**
+     * Store the user session into the currentUser object
+     */
     private fun storeUserSession(handler: IdentityHandler, userSession: CognitoUserSession) {
         val user = User()
         user.username = userSession.username
@@ -101,6 +133,22 @@ class AWSIdentityRepository(context: Context) : IdentityRepository {
                 handleFailure(handler, "Unkown error while getting user details")
             }
         })
+    }
+
+
+    /**
+     * Update the username that is stored in SharedPreferences
+     */
+    override fun updateStoredUsername(username: String?) {
+        with (sharedPreferences.edit()) {
+            if (username == null) {
+                remove(USERNAME_PREF)
+            } else {
+                putString(USERNAME_PREF, username)
+            }
+            commit()
+        }
+        mutableStoredUsername.value = username
     }
 
     /**

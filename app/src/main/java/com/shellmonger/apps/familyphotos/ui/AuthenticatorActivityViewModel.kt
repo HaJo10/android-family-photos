@@ -17,6 +17,12 @@ class AuthenticatorActivityViewModel(private val identityRepository: IdentityRep
         get() = identityRepository.currentUser
 
     /**
+     * Current stored username, or null if the user has never logged in.
+     */
+    val storedUsername: LiveData<String?>
+        get() = identityRepository.storedUsername
+
+    /**
      * Sign-in operation
      */
     fun initiateSignin(handler: IdentityHandler) = identityRepository.initiateSignin(handler)
@@ -30,4 +36,9 @@ class AuthenticatorActivityViewModel(private val identityRepository: IdentityRep
      * Sign-up operation
      */
     fun initiateSignup(handler: IdentityHandler) = identityRepository.initiateSignup(handler)
+
+    /**
+     * Update the stored username
+     */
+    fun updateStoredUsername(username: String?) = identityRepository.updateStoredUsername(username)
 }

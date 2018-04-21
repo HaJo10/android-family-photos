@@ -20,7 +20,7 @@ import org.koin.dsl.module.applicationContext
  */
 //val servicesModule : Module = applicationContext {
 //    bean { MockAnalyticsService() as AnalyticsService }
-//    bean { MockIdentityRepository() as IdentityRepository }
+//    bean { MockIdentityRepository(get()) as IdentityRepository }
 //}
 
 val servicesModule : Module = applicationContext {

@@ -2,6 +2,7 @@ package com.shellmonger.apps.familyphotos.services.mock
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import android.content.Context
 import com.amazonaws.mobile.auth.core.internal.util.ThreadUtils.runOnUiThread
 import com.shellmonger.apps.familyphotos.models.User
 import com.shellmonger.apps.familyphotos.services.interfaces.IdentityHandler
@@ -13,14 +14,29 @@ data class MockUser(val username: String, var password: String, var mfaCode: Str
     val attributes: MutableMap<String, String> = HashMap()
 }
 
-class MockIdentityRepository : IdentityRepository {
+class MockIdentityRepository(val context: Context) : IdentityRepository {
     companion object {
         private val TAG: String = this::class.java.simpleName
 
+        /**
+         * A Lambda that does nothing
+         */
         private val DO_NOTHING: (Map<String, String>?) -> Unit = { }
+
+        /**
+         * The location of the shared preferences file
+         */
+        private val PREFS_FILE: String = "${this::class.java.canonicalName}.PREFS"
+
+        /**
+         * The name of the stored username in the shared preferences file
+         */
+        private const val USERNAME_PREF: String = "authenticator-username"
     }
 
     private val mutableCurrentUser: MutableLiveData<User?> = MutableLiveData()
+    private val mutableStoredUsername: MutableLiveData<String?> = MutableLiveData()
+    private val sharedPreferences = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE)
     private val mockUserMap: MutableMap<String, MockUser> = HashMap()
 
     init {
@@ -36,12 +52,20 @@ class MockIdentityRepository : IdentityRepository {
         user2.attributes["name"] = "User 2"
         user2.attributes["phone_number"] = "+14085551212"
         mockUserMap[UUID.randomUUID().toString()] = user2
+
+        // Load the currently stored username from the SharedPreferences
+        mutableStoredUsername.value = sharedPreferences.getString(USERNAME_PREF, null)
     }
 
     /**
      * Property for the current user record - null if the user is not signed in
      */
     override val currentUser: LiveData<User?> = mutableCurrentUser
+
+    /**
+     * Property for the current stored username - null if it has never been set
+     */
+    override val storedUsername: LiveData<String?> = mutableStoredUsername
 
     /**
      * Initiate Flow: Sign in with a username / password
@@ -78,6 +102,21 @@ class MockIdentityRepository : IdentityRepository {
      */
     override fun initiateSignup(handler: IdentityHandler) = runOnUiThread {
         handler(IdentityRequest.NEED_SIGNUP, null) { response -> signUpWithCredentials(handler, response) }
+    }
+
+    /**
+     * Update the username that is stored in SharedPreferences
+     */
+    override fun updateStoredUsername(username: String?) {
+        with (sharedPreferences.edit()) {
+            if (username == null) {
+                remove(USERNAME_PREF)
+            } else {
+                putString(USERNAME_PREF, username)
+            }
+            commit()
+        }
+        mutableStoredUsername.value = username
     }
 
     /**

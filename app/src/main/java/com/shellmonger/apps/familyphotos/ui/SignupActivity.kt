@@ -131,6 +131,7 @@ class SignupActivity : AppCompatActivity() {
             IdentityRequest.SUCCESS -> {
                 Log.d(TAG, "SUCCESS")
                 toast("Signup Successful")
+                model.updateStoredUsername(signup_username.getContent())
                 this@SignupActivity.finish()
             }
 

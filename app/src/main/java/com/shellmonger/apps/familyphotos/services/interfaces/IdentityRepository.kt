@@ -22,6 +22,11 @@ interface IdentityRepository {
     val currentUser: LiveData<User?>
 
     /**
+     * Stored username
+     */
+    val storedUsername: LiveData<String?>
+
+    /**
      * Sign in with a username / password
      */
     fun initiateSignin(handler: IdentityHandler)
@@ -40,4 +45,9 @@ interface IdentityRepository {
      * Sign up for an account flow
      */
     fun initiateSignup(handler: IdentityHandler)
+
+    /**
+     * Update the stored username
+     */
+    fun updateStoredUsername(username: String?)
 }

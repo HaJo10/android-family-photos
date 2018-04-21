@@ -37,6 +37,14 @@ class ForgotPasswordActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_forgot_password)
 
+        // Work out if we passed in a username from the login screen - if we did, then
+        // use it.
+        if (intent.hasExtra("login_username")) {
+            forgotpassword_username.text.clear()
+            forgotpassword_username.text.append(intent.getStringExtra("login_username"))
+            if (forgotpassword_username.getContent().isNotBlank()) forgotpassword_password.requestFocus()
+        }
+
         // We should be able to close this activity, in which case we go back
         // to the prior activity.
         forgotpassword_cancel_button.onClick { this@ForgotPasswordActivity.finish() }
@@ -111,6 +119,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
 
                 IdentityRequest.SUCCESS -> {
                     Log.d(TAG, "SUCCESS")
+                    model.updateStoredUsername(forgotpassword_username.getContent())
                     this@ForgotPasswordActivity.finish()
                 }
 
